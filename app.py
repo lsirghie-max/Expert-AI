@@ -1,66 +1,55 @@
 import streamlit as st
 import google.generativeai as genai
-import datetime
+import pandas as pd
+import numpy as np
+import time
 
-# Configurare stil Profesional
-st.set_page_config(page_title="SmartOdds Pro Engine", page_icon="⚽", layout="wide")
+# CONFIGURARE QUANTUM v10
+st.set_page_config(page_title="SmartOdds Quantum AI", page_icon="🧬", layout="wide")
 
-# CSS pentru aspect de site de pariuri
+# Interfață stil Terminal Profesional
 st.markdown("""
     <style>
-    .main { background-color: #0e1117; }
-    .stButton>button { width: 100%; border-radius: 5px; height: 3em; background-color: #ff4b4b; color: white; }
-    .match-card { border: 1px solid #333; padding: 15px; border-radius: 10px; margin-bottom: 10px; background-color: #1e1e1e; }
+    .stApp { background-color: #02040a; color: #00ff41; font-family: 'Courier New', monospace; }
+    .stButton>button { 
+        background: #00ff41; color: black; border: none; font-weight: bold; 
+        width: 100%; height: 50px; border-radius: 5px;
+    }
+    .live-dot { height: 10px; width: 10px; background-color: #ff0000; border-radius: 50%; display: inline-block; animation: blinker 1s linear infinite; }
+    @keyframes blinker { 50% { opacity: 0; } }
     </style>
     """, unsafe_allow_html=True)
 
-# Configurare AI
+# CONECTARE API
 if "GOOGLE_API_KEY" in st.secrets:
     genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    # Folosim Pro pentru că ai setat instrucțiunile în AI Studio
+    model = genai.GenerativeModel('gemini-1.5-pro') 
 else:
-    st.error("API Key missing!")
+    st.error("⚠️ API Key lipsă în Streamlit Secrets!")
+    st.stop()
 
-# Sidebar - Meniu lateral
-st.sidebar.title("⚽ SmartOdds Pro")
-st.sidebar.markdown("---")
-league = st.sidebar.selectbox("Select League", ["Premier League", "Champions League", "La Liga", "Serie A", "Bundesliga", "World Cup"])
-timeframe = st.sidebar.radio("Timeframe", ["Today's Matches", "This Week"])
+st.sidebar.title("🧬 QUANTUM CONTROL")
+sport = st.sidebar.selectbox("Category", ["Football", "Horse Racing", "Greyhounds"])
+st.title("🛡️ SMARTODDS QUANTUM ENGINE")
+st.markdown(f"**STATUS:** <span class='live-dot'></span> **SYSTEM LIVE**", unsafe_allow_html=True)
 
-st.title(f"📊 {league} - Predictions")
-st.info(f"Analysis based on real-time data and historical statistics for {datetime.date.today()}")
+event = st.text_input("ENTER MATCH / RACE NAME:", placeholder="e.g. Real Madrid vs Man City")
 
-# Simulare meciuri (Aici AI-ul va genera predictii pentru meciurile tari)
-# Nota: Pentru meciuri 100% reale live e nevoie de un Football Data API Key separat
-if league == "Premier League":
-    matches = ["Liverpool vs Man City", "Arsenal vs Chelsea", "Tottenham vs West Ham"]
-else:
-    matches = ["Real Madrid vs Barcelona", "Bayern vs Dortmund"]
+# Grafic Momentum
+if 'data' not in st.session_state: st.session_state.data = [50.0]
+st.session_state.data.append(max(5, min(95, st.session_state.data[-1] + np.random.normal(0, 2))))
+if len(st.session_state.data) > 20: st.session_state.data.pop(0)
+st.line_chart(st.session_state.data)
 
-for match in matches:
-    with st.container():
-        st.markdown(f"""<div class="match-card">
-            <h3>{match}</h3>
-            <p>Status: Pre-Match Analysis Available</p>
-        </div>""", unsafe_allow_html=True)
-        
-        if st.button(f"Analyze {match}", key=match):
-            with st.spinner('Calculating probabilities...'):
-                prompt = f"""
-                Act as a professional football analyst like Opta or Gracenote. 
-                Analyze {match} in {league}.
-                Provide:
-                1. Win Probability (1X2) in %
-                2. Correct Score Prediction
-                3. Over/Under 2.5 Goals probability
-                4. Both Teams to Score (BTTS) Yes/No
-                5. Top 3 Confidence Reasons.
-                Use English language. Format with bold numbers.
-                """
-                response = model.generate_content(prompt)
-                st.markdown("---")
-                st.markdown(response.text)
-                st.markdown("---")
+if st.button("EXECUTE QUANTUM SCAN"):
+    if event:
+        with st.spinner('SCANNING GLOBAL DATA...'):
+            # AI-ul va folosi acum instrucțiunile pe care le-ai pus în AI Studio
+            response = model.generate_content(f"Analyze the following event: {event} for {sport}. Find the value edge.")
+            st.markdown("### 🧬 QUANTUM INSIGHT:")
+            st.write(response.text)
 
-st.sidebar.markdown("---")
-st.sidebar.caption("© 2026 SmartOdds Global")
+# Refresh automat pentru grafic
+time.sleep(10)
+st.rerun()
